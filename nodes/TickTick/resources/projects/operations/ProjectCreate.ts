@@ -1,225 +1,228 @@
 import type { IExecuteFunctions, INodeProperties } from "n8n-workflow";
+import { NodeOperationError } from "n8n-workflow";
 import {
-	isV2Auth,
-	tickTickApiRequest,
-	tickTickApiRequestV2,
+  isV2Auth,
+  tickTickApiRequest,
+  tickTickApiRequestV2,
 } from "../../../helpers/apiRequest";
 import { extractResourceLocatorValue, setIfDefined } from "../../../helpers";
 import { ENDPOINTS } from "../../../helpers/constants";
 import type { ProjectBody, ResourceLocatorValue } from "../../../helpers/types";
 
 export const projectCreateFields: INodeProperties[] = [
-	{
-		displayName: "Project Name",
-		name: "name",
-		type: "string",
-		required: true,
-		default: "",
-		description: "The name of the project to create",
-		displayOptions: {
-			show: {
-				resource: ["project"],
-				operation: ["create"],
-				jsonParameters: [false],
-			},
-		},
-	},
-	{
-		displayName: "JSON Parameters",
-		name: "jsonParameters",
-		type: "boolean",
-		default: false,
-		displayOptions: { show: { resource: ["project"], operation: ["create"] } },
-	},
-	{
-		displayName: "Additional Fields (JSON)",
-		name: "additionalFieldsJson",
-		type: "json",
-		typeOptions: { alwaysOpenEditWindow: true },
-		default: "",
-		displayOptions: {
-			show: {
-				resource: ["project"],
-				operation: ["create"],
-				jsonParameters: [true],
-			},
-		},
-		description: "Raw JSON body to send directly to TickTick",
-	},
-	{
-		displayName: "Additional Fields",
-		name: "additionalFields",
-		type: "collection",
-		placeholder: "Add Field",
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ["project"],
-				operation: ["create"],
-				jsonParameters: [false],
-			},
-		},
-		options: [
-			{
-				displayName: "Color",
-				name: "color",
-				type: "color",
-				default: "#F18181",
-				description: "Color of the project in Hex format",
-			},
-			{
-				displayName: "Kind",
-				name: "kind",
-				type: "options",
-				options: [
-					{ name: "Note", value: "NOTE" },
-					{ name: "Task", value: "TASK" },
-				],
-				default: "TASK",
-				description: "Kind of project",
-			},
-			{
-				displayName: "Project Group",
-				name: "groupId",
-				type: "resourceLocator",
-				default: { mode: "list", value: "" },
-				description:
-					"Project group to place this project in. Requires V2 API (Email/Password authentication).",
-				modes: [
-					{
-						displayName: "From List",
-						name: "list",
-						type: "list",
-						typeOptions: {
-							searchListMethod: "searchProjectGroupsForCreate",
-							searchable: true,
-							searchFilterRequired: false,
-						},
-					},
-					{
-						displayName: "By ID",
-						name: "id",
-						type: "string",
-						validation: [
-							{
-								type: "regex",
-								properties: {
-									regex: "^[a-zA-Z0-9]+$",
-									errorMessage:
-										"Project Group ID must contain only letters and numbers",
-								},
-							},
-						],
-						placeholder: "e.g. 5f9b3a4c8d2e1f0012345678",
-					},
-				],
-			},
-			{
-				displayName: "Sort Order",
-				name: "sortOrder",
-				type: "number",
-				default: 0,
-				description: "Sort order value of the project",
-			},
-			{
-				displayName: "View Mode",
-				name: "viewMode",
-				type: "options",
-				options: [
-					{ name: "Kanban", value: "kanban" },
-					{ name: "List", value: "list" },
-					{ name: "Timeline", value: "timeline" },
-				],
-				default: "list",
-				description: "Default view mode for the project",
-			},
-		],
-	},
+  {
+    displayName: "Project Name",
+    name: "name",
+    type: "string",
+    required: true,
+    default: "",
+    description: "The name of the project to create",
+    displayOptions: {
+      show: {
+        resource: ["project"],
+        operation: ["create"],
+        jsonParameters: [false],
+      },
+    },
+  },
+  {
+    displayName: "JSON Parameters",
+    name: "jsonParameters",
+    type: "boolean",
+    default: false,
+    displayOptions: { show: { resource: ["project"], operation: ["create"] } },
+  },
+  {
+    displayName: "Additional Fields (JSON)",
+    name: "additionalFieldsJson",
+    type: "json",
+    typeOptions: { alwaysOpenEditWindow: true },
+    default: "",
+    displayOptions: {
+      show: {
+        resource: ["project"],
+        operation: ["create"],
+        jsonParameters: [true],
+      },
+    },
+    description: "Raw JSON body to send directly to TickTick",
+  },
+  {
+    displayName: "Additional Fields",
+    name: "additionalFields",
+    type: "collection",
+    placeholder: "Add Field",
+    default: {},
+    displayOptions: {
+      show: {
+        resource: ["project"],
+        operation: ["create"],
+        jsonParameters: [false],
+      },
+    },
+    options: [
+      {
+        displayName: "Color",
+        name: "color",
+        type: "color",
+        default: "#F18181",
+        description: "Color of the project in Hex format",
+      },
+      {
+        displayName: "Kind",
+        name: "kind",
+        type: "options",
+        options: [
+          { name: "Note", value: "NOTE" },
+          { name: "Task", value: "TASK" },
+        ],
+        default: "TASK",
+        description: "Kind of project",
+      },
+      {
+        displayName: "Project Group",
+        name: "groupId",
+        type: "resourceLocator",
+        default: { mode: "list", value: "" },
+        description:
+          "Project group to place this project in. Requires V2 API (Email/Password authentication).",
+        modes: [
+          {
+            displayName: "From List",
+            name: "list",
+            type: "list",
+            typeOptions: {
+              searchListMethod: "searchProjectGroupsForCreate",
+              searchable: true,
+              searchFilterRequired: false,
+            },
+          },
+          {
+            displayName: "By ID",
+            name: "id",
+            type: "string",
+            validation: [
+              {
+                type: "regex",
+                properties: {
+                  regex: "^[a-zA-Z0-9]+$",
+                  errorMessage:
+                    "Project Group ID must contain only letters and numbers",
+                },
+              },
+            ],
+            placeholder: "e.g. 5f9b3a4c8d2e1f0012345678",
+          },
+        ],
+      },
+      {
+        displayName: "Sort Order",
+        name: "sortOrder",
+        type: "number",
+        default: 0,
+        description: "Sort order value of the project",
+      },
+      {
+        displayName: "View Mode",
+        name: "viewMode",
+        type: "options",
+        options: [
+          { name: "Kanban", value: "kanban" },
+          { name: "List", value: "list" },
+          { name: "Timeline", value: "timeline" },
+        ],
+        default: "list",
+        description: "Default view mode for the project",
+      },
+    ],
+  },
 ];
 
-/** Additional fields from the n8n form */
 interface ProjectAdditionalFields {
-	color?: string;
-	groupId?: string | ResourceLocatorValue;
-	kind?: string;
-	sortOrder?: number;
-	viewMode?: string;
+  color?: string;
+  groupId?: string | ResourceLocatorValue;
+  kind?: string;
+  sortOrder?: number;
+  viewMode?: string;
 }
 
 export async function projectCreateExecute(
-	this: IExecuteFunctions,
-	index: number,
+  this: IExecuteFunctions,
+  index: number,
 ) {
-	const useJson = this.getNodeParameter(
-		"jsonParameters",
-		index,
-		false,
-	) as boolean;
-	let body: ProjectBody = {};
+  const useJson = this.getNodeParameter(
+    "jsonParameters",
+    index,
+    false,
+  ) as boolean;
+  let body: ProjectBody = {};
 
-	if (useJson) {
-		const jsonString = this.getNodeParameter(
-			"additionalFieldsJson",
-			index,
-			"{}",
-		) as string;
-		try {
-			body = JSON.parse(jsonString) as ProjectBody;
-		} catch (error) {
-			throw new Error(`Invalid JSON provided: ${(error as Error).message}`);
-		}
-	} else {
-		const name = this.getNodeParameter("name", index) as string;
-		const additional = this.getNodeParameter(
-			"additionalFields",
-			index,
-			{},
-		) as ProjectAdditionalFields;
+  if (useJson) {
+    const jsonString = this.getNodeParameter(
+      "additionalFieldsJson",
+      index,
+      "{}",
+    ) as string;
+    try {
+      body = JSON.parse(jsonString) as ProjectBody;
+    } catch (error) {
+      throw new NodeOperationError(
+        this.getNode(),
+        `Invalid JSON provided: ${(error as Error).message}`,
+        { itemIndex: index },
+      );
+    }
+  } else {
+    const name = this.getNodeParameter("name", index) as string;
+    const additional = this.getNodeParameter(
+      "additionalFields",
+      index,
+      {},
+    ) as ProjectAdditionalFields;
 
-		if (!name || name.trim() === "") {
-			throw new Error("Project name is required and cannot be empty");
-		}
+    if (!name || name.trim() === "") {
+      throw new Error("Project name is required and cannot be empty");
+    }
 
-		const cleaned: ProjectBody = {};
+    const cleaned: ProjectBody = {};
 
-		cleaned.name = name;
+    cleaned.name = name;
 
-		setIfDefined(cleaned, "color", additional.color);
-		setIfDefined(cleaned, "kind", additional.kind);
-		setIfDefined(cleaned, "sortOrder", additional.sortOrder);
-		setIfDefined(cleaned, "viewMode", additional.viewMode);
+    setIfDefined(cleaned, "color", additional.color);
+    setIfDefined(cleaned, "kind", additional.kind);
+    setIfDefined(cleaned, "sortOrder", additional.sortOrder);
+    setIfDefined(cleaned, "viewMode", additional.viewMode);
 
-		// Handle groupId resource locator
-		if (additional.groupId !== undefined) {
-			const groupIdValue = extractResourceLocatorValue(additional.groupId);
-			if (groupIdValue) {
-				cleaned.groupId = groupIdValue;
-			}
-		}
+    if (additional.groupId !== undefined) {
+      const groupIdValue = extractResourceLocatorValue(additional.groupId);
+      if (groupIdValue) {
+        cleaned.groupId = groupIdValue;
+      }
+    }
 
-		body = cleaned;
-	}
+    body = cleaned;
+  }
 
-	const useV2 = isV2Auth(this, index);
+  const useV2 = isV2Auth(this, index);
 
-	if (useV2) {
-		const batchBody = {
-			add: [body],
-		};
-		const response = await tickTickApiRequestV2.call(
-			this,
-			"POST",
-			ENDPOINTS.PROJECTS_BATCH,
-			batchBody,
-		);
-		return [{ json: response }];
-	}
+  if (useV2) {
+    const batchBody = {
+      add: [body],
+    };
+    const response = await tickTickApiRequestV2.call(
+      this,
+      "POST",
+      ENDPOINTS.PROJECTS_BATCH,
+      batchBody,
+    );
+    return [{ json: response }];
+  }
 
-	const response = await tickTickApiRequest.call(
-		this,
-		"POST",
-		ENDPOINTS.OPEN_V1_PROJECT,
-		body,
-	);
-	return [{ json: response }];
+  const response = await tickTickApiRequest.call(
+    this,
+    "POST",
+    ENDPOINTS.OPEN_V1_PROJECT,
+    body,
+  );
+  return [{ json: response }];
 }

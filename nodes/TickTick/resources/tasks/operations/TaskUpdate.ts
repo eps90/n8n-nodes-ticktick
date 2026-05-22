@@ -3,6 +3,7 @@ import type {
 	IExecuteFunctions,
 	INodeProperties,
 } from "n8n-workflow";
+import { NodeOperationError } from "n8n-workflow";
 import {
 	extractResourceLocatorValue,
 	extractTagValue,
@@ -642,7 +643,11 @@ export async function taskUpdateExecute(
 		try {
 			body = JSON.parse(jsonString) as TaskBody;
 		} catch (error) {
-			throw new Error(`Invalid JSON provided: ${(error as Error).message}`);
+			throw new NodeOperationError(
+				this.getNode(),
+				`Invalid JSON provided: ${(error as Error).message}`,
+				{ itemIndex: index },
+			);
 		}
 	} else {
 		const updateFields = this.getNodeParameter(

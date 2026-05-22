@@ -4,7 +4,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from "n8n-workflow";
-import { NodeApiError, NodeOperationError } from "n8n-workflow";
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from "n8n-workflow";
 
 import { testTickTickSessionApi } from "./helpers/credentialTest";
 import { registry, sharedMethods } from "./resources";
@@ -22,8 +22,8 @@ export class TickTick implements INodeType {
 			name: "TickTick",
 		},
 		usableAsTool: true,
-		inputs: ["main"],
-		outputs: ["main"],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: "tickTickTokenApi",
@@ -55,8 +55,8 @@ export class TickTick implements INodeType {
 				type: "options",
 				options: [
 					{ name: "Access Token (V1 API)", value: "tickTickTokenApi" },
-					{ name: "OAuth2 (V1 API)", value: "tickTickOAuth2Api" },
 					{ name: "Email/Password (V2 API)", value: "tickTickSessionApi" },
+					{ name: "OAuth2 (V1 API)", value: "tickTickOAuth2Api" },
 				],
 				default: "tickTickTokenApi",
 			},
@@ -107,6 +107,7 @@ export class TickTick implements INodeType {
 					throw new NodeOperationError(
 						this.getNode(),
 						`Unsupported operation: ${resource}.${operation}`,
+						{ itemIndex: i },
 					);
 				}
 
@@ -116,10 +117,11 @@ export class TickTick implements INodeType {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: { error: (error as Error).message },
+						pairedItem: { item: i },
 					});
 					continue;
 				}
-				throw new NodeApiError(this.getNode(), error);
+				throw new NodeApiError(this.getNode(), error, { itemIndex: i });
 			}
 		}
 

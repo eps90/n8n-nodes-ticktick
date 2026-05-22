@@ -3,6 +3,7 @@ import type {
 	IExecuteFunctions,
 	INodeProperties,
 } from "n8n-workflow";
+import { NodeOperationError } from "n8n-workflow";
 import {
 	isV2Auth,
 	tickTickApiRequest,
@@ -211,7 +212,11 @@ export async function projectUpdateExecute(
 		try {
 			body = JSON.parse(jsonString) as ProjectBody;
 		} catch (error) {
-			throw new Error(`Invalid JSON provided: ${(error as Error).message}`);
+			throw new NodeOperationError(
+				this.getNode(),
+				`Invalid JSON provided: ${(error as Error).message}`,
+				{ itemIndex: index },
+			);
 		}
 	} else {
 		const updateFields = this.getNodeParameter(
