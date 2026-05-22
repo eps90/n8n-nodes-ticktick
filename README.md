@@ -27,8 +27,8 @@ An n8n community node for integrating [TickTick](https://ticktick.com) with your
 
 ## Installation
 
-1. Make a new workflow or open an existing one
-2. Open the nodes panel by selecting **+** or pressing **Tab**
+1. Create a new workflow or open an existing one
+2. Open the nodes panel by selecting **+** or pressing **N**
 3. Search for **TickTick**
 4. Select **Install** to install the node for your instance
 

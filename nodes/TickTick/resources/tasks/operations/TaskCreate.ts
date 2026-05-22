@@ -1,4 +1,5 @@
 import type { IExecuteFunctions, INodeProperties } from "n8n-workflow";
+import { NodeOperationError } from "n8n-workflow";
 import {
 	extractResourceLocatorValue,
 	formatTickTickDate,
@@ -345,7 +346,11 @@ export async function taskCreateExecute(
 		try {
 			body = JSON.parse(jsonString) as TaskBody;
 		} catch (error) {
-			throw new Error(`Invalid JSON provided: ${(error as Error).message}`);
+			throw new NodeOperationError(
+				this.getNode(),
+				`Invalid JSON provided: ${(error as Error).message}`,
+				{ itemIndex: index },
+			);
 		}
 	} else {
 		const title = this.getNodeParameter("title", index) as string;
@@ -440,6 +445,10 @@ export async function taskCreateExecute(
 		);
 		return [{ json: response }];
 	} catch (error) {
-		throw new Error(`Failed to create task: ${error.message}`);
+		throw new NodeOperationError(
+			this.getNode(),
+			`Failed to create task: ${(error as Error).message}`,
+			{ itemIndex: index },
+		);
 	}
 }

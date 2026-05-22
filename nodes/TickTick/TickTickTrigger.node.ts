@@ -6,7 +6,7 @@ import type {
 	INodeTypeDescription,
 	IPollFunctions,
 } from "n8n-workflow";
-import { NodeOperationError } from "n8n-workflow";
+import { NodeConnectionTypes, NodeOperationError } from "n8n-workflow";
 
 import {
 	getAuthenticationType,
@@ -149,7 +149,7 @@ export class TickTickTrigger implements INodeType {
 		],
 		polling: true,
 		inputs: [],
-		outputs: ["main"],
+		outputs: [NodeConnectionTypes.Main],
 		properties: [
 			{
 				displayName: "Authentication",
@@ -157,8 +157,8 @@ export class TickTickTrigger implements INodeType {
 				type: "options",
 				options: [
 					{ name: "Access Token (V1 API)", value: "tickTickTokenApi" },
-					{ name: "OAuth2 (V1 API)", value: "tickTickOAuth2Api" },
 					{ name: "Email/Password (V2 API)", value: "tickTickSessionApi" },
+					{ name: "OAuth2 (V1 API)", value: "tickTickOAuth2Api" },
 				],
 				default: "tickTickTokenApi",
 			},
