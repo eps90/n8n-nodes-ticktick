@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-base.TickTickTrigger",
+	"node": "n8n-nodes-ticktick.TickTickTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Productivity"],
